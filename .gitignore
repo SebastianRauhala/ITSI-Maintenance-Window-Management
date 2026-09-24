@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# Build artifacts / reports (do not commit build outputs)
+*.spl
+/stage/
+appinspect*.json
+
+# Splunk local overrides (never commit customer-specific config)
+local/
+local.meta
+
+# Raw source art (processed into static/ icons; don't ship raw screenshots)
+Screenshot*.png

@@ -1,0 +1,4 @@
+<nav search_view="search" color="#4A90E2">
+  <view name="itsi_maintenance_home" default="true" />
+  <view name="search" />
+</nav>

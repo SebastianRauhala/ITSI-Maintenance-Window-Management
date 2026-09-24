@@ -1,0 +1,63 @@
+<form class="form-horizontal">
+  <!--
+    Alert-action configuration UI for ITSI Maintenance Window Management.
+    Only safety controls are exposed. Endpoint/security constants are fixed in
+    code and never configurable here.
+  -->
+  <div class="control-group">
+    <label class="control-label" for="default_dry_run">Dry run</label>
+    <div class="controls">
+      <select name="action.itsi_maintenance_action.param.default_dry_run" id="default_dry_run">
+        <option value="true" selected="selected">true (no writes)</option>
+        <option value="false">false (perform writes)</option>
+      </select>
+      <span class="help-block">When true, validate and build the payload but perform no create/update/cancel/delete.</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="enable_delete">Enable delete</label>
+    <div class="controls">
+      <select name="action.itsi_maintenance_action.param.enable_delete" id="enable_delete">
+        <option value="false" selected="selected">false</option>
+        <option value="true">true</option>
+      </select>
+      <span class="help-block">Destructive delete is disabled by default. Prefer cancel (set end_time) for expiring windows.</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="allowed_operations">Allowed operations</label>
+    <div class="controls">
+      <input type="text" name="action.itsi_maintenance_action.param.allowed_operations" id="allowed_operations" value="validate,list,create,update,cancel" />
+      <span class="help-block">Comma-separated subset of: validate,list,create,update,cancel,delete</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="required_title_prefix">Required title prefix</label>
+    <div class="controls">
+      <input type="text" name="action.itsi_maintenance_action.param.required_title_prefix" id="required_title_prefix" value="" />
+      <span class="help-block">Optional. If set, every window title must start with this prefix (e.g. a change-ticket prefix).</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="require_change_id">Require change_id</label>
+    <div class="controls">
+      <select name="action.itsi_maintenance_action.param.require_change_id" id="require_change_id">
+        <option value="false" selected="selected">false</option>
+        <option value="true">true</option>
+      </select>
+      <span class="help-block">Require a change_id on all write operations.</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="max_duration_seconds">Max duration (seconds)</label>
+    <div class="controls">
+      <input type="text" name="action.itsi_maintenance_action.param.max_duration_seconds" id="max_duration_seconds" value="604800" />
+      <span class="help-block">Reject windows longer than this. Default 7 days.</span>
+    </div>
+  </div>
+</form>

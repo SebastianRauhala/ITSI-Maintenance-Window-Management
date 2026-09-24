@@ -1,0 +1,275 @@
+<dashboard version="1.1" theme="light">
+  <label>ITSI Maintenance Window Management - Home</label>
+  <description>Manage ITSI maintenance windows interactively with the itsimaintenance command.</description>
+
+  <row>
+    <panel>
+      <html>
+        <div style="padding:8px 4px">
+          <h1>ITSI Maintenance Window Management</h1>
+          <p>
+            Create, inspect, update, cancel and (optionally) delete
+            <b>ITSI maintenance windows</b> directly from a search using the
+            <code>itsimaintenance</code> custom command. Results appear inline so
+            you can see success/failure per request immediately.
+          </p>
+          <p style="background:#fff4d6;border:1px solid #e6c14c;padding:8px;border-radius:4px">
+            <b>Safe by default:</b> operations run in <b>dry-run</b> unless you set
+            <code>dry_run="false"</code>. Destructive <b>delete is disabled</b> by
+            default. Every request is <b>idempotent</b> (keyed on
+            <code>request_id</code>), so re-running the same request never creates
+            duplicates.
+          </p>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Quick start</title>
+      <html>
+        <div style="padding:4px">
+          <h3>1. List current maintenance windows</h3>
+          <pre>| makeresults
+| eval operation="list", request_id="ui-list"
+| itsimaintenance</pre>
+
+          <h3>2. Validate / dry-run a create (no write)</h3>
+          <pre>| makeresults
+| eval operation="create", request_id="CHG123",
+       title="CHG123 - planned maintenance",
+       object_key="&lt;ENTITY_OR_SERVICE_KEY&gt;", object_type="entity",
+       start_time="&lt;EPOCH_START&gt;", end_time="&lt;EPOCH_END&gt;",
+       dry_run="true"
+| itsimaintenance</pre>
+
+          <h3>3. Actually create the window</h3>
+          <pre>... | itsimaintenance dry_run=false</pre>
+          <p>or set <code>dry_run="false"</code> in the row. The result row
+          returns <code>maintenance_window_keys</code> on success.</p>
+
+          <h3>4. Cancel or delete an existing window</h3>
+          <pre>| makeresults
+| eval operation="cancel", request_id="CHG123-cancel",
+       maintenance_window_key="&lt;WINDOW_KEY&gt;"
+| itsimaintenance dry_run=false</pre>
+          <p><code>delete</code> requires <code>enable_delete=true</code> in
+          <code>itsi_maintenance.conf [safety]</code>. Prefer <b>cancel</b>.</p>
+        </div>
+      </html>
+    </panel>
+    <panel>
+      <title>Input fields</title>
+      <html>
+        <div style="padding:4px">
+          <table style="border-collapse:collapse;width:100%">
+            <tr style="background:#f2f2f2"><th align="left">Field</th><th align="left">Required for</th></tr>
+            <tr><td><code>operation</code></td><td>all (validate,list,create,update,cancel,delete)</td></tr>
+            <tr><td><code>request_id</code></td><td>all (idempotency key)</td></tr>
+            <tr><td><code>title</code></td><td>create, update (globally unique in ITSI)</td></tr>
+            <tr><td><code>object_key</code></td><td>create, update (entity/service _key)</td></tr>
+            <tr><td><code>object_type</code></td><td>create, update (entity | service)</td></tr>
+            <tr><td><code>start_time</code>, <code>end_time</code></td><td>create, update (UTC epoch seconds)</td></tr>
+            <tr><td><code>maintenance_window_key</code></td><td>update, cancel, delete</td></tr>
+            <tr><td><code>comment</code>, <code>group_id</code>, <code>change_id</code>, <code>requested_by</code>, <code>dry_run</code></td><td>optional</td></tr>
+          </table>
+          <p style="margin-top:8px">Rows sharing a <code>request_id</code> are
+          grouped into one request; a group mixing entities and services is
+          auto-split into separate windows. Timestamps must be UTC epoch seconds
+          (or ISO-8601 with <code>Z</code>/offset); <code>end_time</code> &gt;
+          <code>start_time</code>.</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Current maintenance windows (live)</title>
+      <table>
+        <search>
+          <query>| makeresults
+| eval operation="list", request_id="dashboard-home"
+| itsimaintenance
+| eval start=strftime(start_time,"%Y-%m-%d %H:%M:%S UTC"),
+       end=strftime(end_time,"%Y-%m-%d %H:%M:%S UTC")
+| table title maintenance_window_key start end object_count</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+          <refresh>60s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="count">20</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Entities currently in maintenance (live)</title>
+      <table>
+        <search>
+          <query>| inputlookup operative_maintenance_log
+| where maintenance_object_type="entity" AND start_time&lt;=now() AND end_time&gt;=now()
+| rename maintenance_object_key as entity_key
+| lookup itsi_entities _key as entity_key OUTPUT title as entity_title
+| eval ends=strftime(end_time,"%Y-%m-%d %H:%M:%S UTC")
+| table entity_title entity_key ends calendar_origin</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+          <refresh>60s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Result fields &amp; error categories</title>
+      <html>
+        <div style="padding:4px">
+          <p>Each result row includes <code>result</code>
+          (<code>success</code> / <code>failure</code> / <code>noop</code>),
+          <code>dry_run</code>, <code>maintenance_window_keys</code> (on create),
+          and on failure a stable <code>error_category</code> such as:</p>
+          <p><code>missing_required_field</code>, <code>invalid_timestamp</code>,
+          <code>entity_not_found</code>, <code>service_not_found</code>,
+          <code>duplicate_request</code>, <code>payload_conflict</code>,
+          <code>authorization_failed_403</code>, <code>not_found_404</code>,
+          <code>conflict_409</code>, <code>operation_not_allowed</code>,
+          <code>limit_exceeded</code>.</p>
+          <p>Full documentation ships in the app's <code>docs/</code> folder:
+          API contract, architecture, threat model, roles, runbook, validation
+          report and known limitations.</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Update an existing maintenance window</title>
+      <html>
+        <div style="padding:4px">
+          <p><code>update</code> performs a <b>full replace</b> (read-modify-write):
+          the tool GETs the window and PUTs the complete new definition. You must
+          supply the <b>entire desired end-state</b> — <code>title</code>, the
+          <b>full</b> set of objects, <code>start_time</code> and
+          <code>end_time</code>. Any object you leave out is removed.</p>
+          <pre>| makeresults
+| eval operation="update",
+       request_id="CHG123-update-1",
+       maintenance_window_key="&lt;WINDOW_KEY&gt;",
+       title="CHG123 - planned maintenance",
+       object_key="&lt;ENTITY_OR_SERVICE_KEY&gt;", object_type="entity",
+       start_time="&lt;EPOCH_START&gt;", end_time="&lt;EPOCH_END_NEW&gt;",
+       dry_run="true"
+| itsimaintenance</pre>
+          <p>For a window with several objects, send one row per object, all
+          sharing the same <code>request_id</code>,
+          <code>maintenance_window_key</code>, <code>title</code>,
+          <code>start_time</code> and <code>end_time</code>.</p>
+          <p><b>Good to know:</b></p>
+          <ul>
+            <li><b>Full replace</b> — resupply <b>all</b> objects or they are dropped.</li>
+            <li><b>One object type per window</b> (all entities or all services).</li>
+            <li><b>Active or future windows only</b> — a <b>completed</b> window
+            (past <code>end_time</code>) is blocked
+            (<code>operation_not_allowed</code>).</li>
+            <li><b>Titles are globally unique</b> — keep the window's own title, or
+            a new title not used by another window (else HTTP 409).</li>
+            <li>Use a <b>fresh <code>request_id</code></b> per change; the same id
+            with different data is rejected as a payload conflict.</li>
+          </ul>
+        </div>
+      </html>
+    </panel>
+    <panel>
+      <title>Cancel vs delete</title>
+      <html>
+        <div style="padding:4px">
+          <p><b>Cancel</b> ends a window now (active &#8594; <code>end_time=now</code>;
+          future &#8594; collapsed into the past). It only works on
+          <b>active or future</b> windows — a window that has already finished
+          cannot be cancelled (nothing to cancel; its objects already left
+          maintenance at <code>end_time</code>).</p>
+          <pre>| makeresults
+| eval operation="cancel", request_id="CHG123-cancel",
+       maintenance_window_key="&lt;WINDOW_KEY&gt;"
+| itsimaintenance dry_run=false</pre>
+          <p>Check a window is still active before cancelling:</p>
+          <pre>| inputlookup operative_maintenance_log
+| where calendar_origin="&lt;WINDOW_KEY&gt;" AND end_time&gt;=now()
+| stats count as still_active</pre>
+          <p><b>Delete</b> removes a window entirely and is <b>disabled by
+          default</b> (set <code>enable_delete=true</code> in
+          <code>itsi_maintenance.conf [safety]</code>). Prefer letting windows
+          expire naturally via <code>end_time</code>; use delete only to remove a
+          leftover record.</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Scheduled automation (alert action)</title>
+      <html>
+        <div style="padding:4px">
+          <p>The same operations can run <b>unattended on a schedule</b> via the
+          bundled alert action, instead of interactively with the command.</p>
+          <ul>
+            <li>Build a search that outputs the window-definition rows (same field
+            contract as the command).</li>
+            <li><b>Save As &#8594; Alert</b>, set a cron schedule, then
+            <b>Add Actions &#8594; ITSI Maintenance Window Management</b>.</li>
+            <li>Keep the action parameter <code>default_dry_run = true</code> until
+            you have validated the environment.</li>
+            <li>Review outcomes in the app log:
+            <code>index=_internal source=*itsi_maintenance_window_management.log*</code>.</li>
+          </ul>
+          <p><b>When to use which:</b> the <b>command</b> for interactive/on-demand
+          runs with inline results; the <b>alert action</b> for scheduled,
+          unattended automation with a logged audit trail. Both share the same
+          validated, idempotent engine.</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Authentication &amp; privileges</title>
+      <html>
+        <div style="padding:4px">
+          <p>Operations run as <b>the user running the search</b> (command) or the
+          <b>saved-search owner</b> (alert action), using that principal's
+          ephemeral session key. No credentials are stored. Three layers apply:</p>
+          <ol>
+            <li><b>ITSI capabilities</b> (enforced by ITSI against the session key):
+            <ul>
+              <li><code>read_maintenance_calendar</code> &#8212; list / read / dry-run</li>
+              <li><code>write_maintenance_calendar</code> &#8212; create / update / cancel</li>
+              <li><code>delete_maintenance_calendar</code> &#8212; delete</li>
+            </ul></li>
+            <li><b>ITSI object RBAC:</b> you need <b>write</b> on the target
+            <b>service's team</b>; entities use the Global/default security group.
+            Missing access &#8594; controlled <code>authorization_failed_403</code>,
+            no change.</li>
+            <li><b>App KV Store:</b> your role must have read/write on the app
+            collection <code>itsi_mw_automation_state</code> (idempotency/state) or
+            writes fail with <code>state_backend_error</code>.</li>
+          </ol>
+          <p>For scheduled use, the owner also needs <code>schedule_search</code>;
+          own scheduled searches with a dedicated service account.
+          <b>Admin is not required.</b> Example roles shipped with the app:
+          <code>itsi_maintenance_manager</code> (read/create/update + KV access)
+          and <code>itsi_maintenance_reader</code> (read-only). See
+          <code>docs/ROLES.md</code> for a least-privilege setup.</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+</dashboard>

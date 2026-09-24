@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "ITSI Maintenance Window Management",
+    "id": {
+      "group": null,
+      "name": "itsi_maintenance_window_management",
+      "version": "1.1.0"
+    },
+    "author": [
+      {
+        "name": "ITSI Maintenance Window Management Project",
+        "email": null,
+        "company": null
+      }
+    ],
+    "releaseDate": null,
+    "description": "Create, inspect, update, cancel and (optionally) delete ITSI maintenance windows from scheduled or ad hoc saved searches via a supported ITSI REST interface.",
+    "classification": {
+      "intendedAudience": "IT Operations",
+      "categories": ["IT Operations", "Utilities"],
+      "developmentStatus": "Production/Stable"
+    },
+    "commonInformationModels": null,
+    "license": {
+      "name": "Apache-2.0",
+      "text": "LICENSE",
+      "uri": null
+    },
+    "privacyPolicy": null,
+    "releaseNotes": {
+      "name": "CHANGELOG",
+      "text": "CHANGELOG.md",
+      "uri": null
+    }
+  },
+  "dependencies": null,
+  "tasks": null,
+  "inputGroups": null,
+  "incompatibleApps": null,
+  "platformRequirements": {
+    "splunk": {
+      "Enterprise": "*"
+    }
+  }
+}

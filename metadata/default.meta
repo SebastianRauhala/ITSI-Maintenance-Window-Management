@@ -1,0 +1,29 @@
+#   ITSI Maintenance Window Management - default object permissions
+[]
+access = read : [ * ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = system
+
+[alert_actions/itsi_maintenance_action]
+access = read : [ * ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = system
+
+# Custom command: readable by all; ITSI enforces write capability at the REST
+# layer using the runtime session key.
+[commands/itsimaintenance]
+access = read : [ * ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = system
+
+[views/itsi_maintenance_home]
+access = read : [ * ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = system
+
+[nav/default]
+access = read : [ * ], write : [ admin, sc_admin ]
+
+[collections/itsi_mw_automation_state]
+access = read : [ admin, sc_admin, itsi_maintenance_manager, itsi_maintenance_reader ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = none
+
+[transforms/itsi_mw_automation_state]
+access = read : [ admin, sc_admin, itsi_maintenance_manager, itsi_maintenance_reader ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = none
