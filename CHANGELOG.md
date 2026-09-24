@@ -10,11 +10,23 @@ This project adheres to semantic versioning.
   (app id `itsi_maintenance_window_management`). The custom command
   (`itsimaintenance`) and alert action (`itsi_maintenance_action`) names are
   unchanged.
+- **Author / license:** set author to Sebastian Rauhala; personal copyright;
+  added `NOTICE` with a GenAI-built transparency note, a developer-supported /
+  no-warranty disclaimer, and a Splunk/ITSI trademark acknowledgment.
+- **Delete is now a single switch:** `enable_delete=true` alone enables the
+  delete operation (no need to also add it to `allowed_operations`). ITSI's
+  `delete_maintenance_calendar` capability remains the ultimate gate.
+- **Simplified capabilities:** removed the never-enforced granular
+  `read/create/update/delete_itsi_maintenance_windows`; kept a single
+  `manage_itsi_maintenance_windows` (groups app admin + gates the KV state
+  collection). Real enforcement is ITSI native capabilities + object RBAC.
 - **Raised limits:** `max_objects_per_window` 100 → **1000**;
-  `max_rows_per_invocation` 500 → **2000**.
+  `max_rows_per_invocation` 500 → **2000**; `max_duration_seconds` 7d → **90d**.
 - **Reconciliation now scales** to any number of windows: `_reconcile_find`
   filters server-side by the (unique) title and only pages the full collection
   if the API ignores the filter (previously scanned just the first 500).
+- Dashboard times now render in the **user's timezone** (`%Z`) instead of a
+  hard-coded "UTC" label.
 
 ### Added
 - **`request_id` now allows spaces** (still rejects tab/newline; 1–128 chars).
@@ -22,11 +34,19 @@ This project adheres to semantic versioning.
   `request_id` kept as a field.
 - **Home dashboard** panels: update-window example + semantics, cancel vs delete
   guidance, scheduled alert-action guidance, an Authentication & privileges
-  panel, and a live "entities currently in maintenance" table.
+  panel, a live "entities currently in maintenance" table, and a
+  **Troubleshooting & logs** panel.
 - **Example searches** in `docs/SAVED_SEARCH_EXAMPLES.md`: entities currently in
   maintenance (via `operative_maintenance_log`), a candidates-needing-maintenance
   anti-join, and an update example.
 - **App icons** (`static/appIcon*`, `appserver/static/appIcon.png`).
+
+### Notes
+- A classic `setup.xml` was evaluated for in-Web configuration but is **not
+  permitted on Splunk Cloud** (fails AppInspect / misbehaves with SHC). A
+  Splunk-Web setup **view (HTML/JS)** or UCC-based config is planned; meanwhile
+  the alert action is Web-configurable and the command's `[safety]` settings are
+  editable via `local/` or the `configs/conf-itsi_maintenance` REST endpoint.
 
 ## [1.0.0] - 2026-09-17
 

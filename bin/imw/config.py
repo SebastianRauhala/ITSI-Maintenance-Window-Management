@@ -50,7 +50,7 @@ class Settings(object):
         # Limits
         self.max_rows = as_int(cfg.get("max_rows_per_invocation"), 2000)
         self.max_objects = as_int(cfg.get("max_objects_per_window"), 1000)
-        self.max_duration_s = as_int(cfg.get("max_duration_seconds"), 7 * 86400)
+        self.max_duration_s = as_int(cfg.get("max_duration_seconds"), 90 * 86400)
         self.max_future_horizon_s = as_int(
             cfg.get("max_future_horizon_seconds"), 365 * 86400)
         self.min_lead_s = as_int(cfg.get("min_lead_seconds"), 0)
@@ -76,7 +76,13 @@ class Settings(object):
         # Optional summary index (must already exist / be approved).
         self.summary_index = (cfg.get("summary_index") or "").strip()
 
-        if not self.enable_delete:
+        # enable_delete is the single switch for the destructive delete op:
+        # when true, 'delete' is added to the allowed set; when false it is
+        # always removed. (ITSI's delete_maintenance_calendar capability is the
+        # ultimate gate regardless.)
+        if self.enable_delete:
+            self.allowed_operations.add("delete")
+        else:
             self.allowed_operations.discard("delete")
 
     def ensure_operation_allowed(self, operation):

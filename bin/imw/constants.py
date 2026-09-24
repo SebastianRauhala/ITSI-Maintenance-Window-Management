@@ -57,12 +57,10 @@ STATE_COLLECTION_API = (
     )
 )
 
-# Custom capabilities defined by this app (authorize.conf).
+# Custom capability defined by this app (authorize.conf). Used to group app
+# administration and gate the app-owned KV state collection. Maintenance-window
+# operations themselves are enforced by ITSI's native capabilities below.
 CAP_MANAGE = "manage_itsi_maintenance_windows"
-CAP_READ = "read_itsi_maintenance_windows"
-CAP_CREATE = "create_itsi_maintenance_windows"
-CAP_UPDATE = "update_itsi_maintenance_windows"
-CAP_DELETE = "delete_itsi_maintenance_windows"
 
 # Native ITSI capabilities required at the ITSI REST layer (informational; the
 # ITSI handler enforces these itself).

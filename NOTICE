@@ -1,0 +1,44 @@
+ITSI Maintenance Window Management
+Copyright (c) 2026 Sebastian Rauhala.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this software except in compliance with the License. A copy of the License is
+provided in the LICENSE file.
+
+-------------------------------------------------------------------------------
+Author
+-------------------------------------------------------------------------------
+Sebastian Rauhala <serauhal@cisco.com>
+
+-------------------------------------------------------------------------------
+Transparency: built with generative AI
+-------------------------------------------------------------------------------
+This application was designed and implemented with the assistance of generative
+AI tooling, with human review. Validation results are recorded in
+docs/VALIDATION_REPORT.md.
+
+-------------------------------------------------------------------------------
+Support & warranty disclaimer
+-------------------------------------------------------------------------------
+This software is DEVELOPER-SUPPORTED and provided on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied (see the Apache
+License, Version 2.0). There is NO guarantee of fitness for any particular
+purpose, availability, or support. Use at your own risk, and validate in a
+non-production environment before production use. The author is not liable for
+any damages arising from its use.
+
+-------------------------------------------------------------------------------
+Trademarks
+-------------------------------------------------------------------------------
+Splunk, Splunk Enterprise, Splunk Cloud, and Splunk IT Service Intelligence
+(ITSI) are trademarks or registered trademarks of Splunk LLC, a Cisco company,
+in the United States and other countries. This is an independent,
+community/developer project and is NOT an official Splunk or Cisco product, nor
+is it endorsed or supported by Splunk or Cisco. All trademarks are the property
+of their respective owners.
+
+-------------------------------------------------------------------------------
+Third-party components
+-------------------------------------------------------------------------------
+This app bundles the Splunk SDK for Python (splunklib) under the Apache License,
+Version 2.0. See THIRD-PARTY-NOTICES.md for details.

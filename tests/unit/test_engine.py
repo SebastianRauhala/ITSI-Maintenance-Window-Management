@@ -126,9 +126,9 @@ class TestEngineDelete(unittest.TestCase):
                       "maintenance_window_key": key, "dry_run": "false"}])
 
     def test_delete_enabled(self):
-        eng, mt = make_engine({"enable_delete": "true",
-                               "allowed_operations":
-                               "create,delete,list,cancel,update,validate"})
+        # Single switch: enable_delete=true alone enables delete (no need to
+        # also list it in allowed_operations).
+        eng, mt = make_engine({"enable_delete": "true"})
         c = eng.run(create_rows())
         key = c[0]["maintenance_window_keys"][0]
         res = eng.run([{"operation": "delete", "request_id": "D2",

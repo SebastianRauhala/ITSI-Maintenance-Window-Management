@@ -39,7 +39,7 @@ param.max_objects_per_window = <integer>
 
 param.max_duration_seconds = <integer>
 * Maximum allowed maintenance-window duration, in seconds.
-* Default: 604800
+* Default: 7776000
 
 param.max_future_horizon_seconds = <integer>
 * Maximum allowed scheduling distance into the future, in seconds.

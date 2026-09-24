@@ -1,14 +1,16 @@
 # Roles & Capabilities
 
-## Capabilities defined by this app (`authorize.conf`)
+## Capability defined by this app (`authorize.conf`)
 - `manage_itsi_maintenance_windows`
-- `read_itsi_maintenance_windows`
-- `create_itsi_maintenance_windows`
-- `update_itsi_maintenance_windows`
-- `delete_itsi_maintenance_windows`
 
-These gate **who may own/run** the saved searches that invoke the alert action.
-They are app-level authorization; they do **not** replace ITSI's own checks.
+This single capability is **scaffolding**: it groups app administration and gates
+the app-owned KV Store state collection (`itsi_mw_automation_state`). It does
+**not** by itself authorize maintenance-window operations. (Earlier builds
+defined granular `read/create/update/delete_itsi_maintenance_windows`
+capabilities; these were never enforced in code and have been removed to avoid
+confusion.)
+
+The **real** authorization is ITSI's native capabilities + object RBAC below.
 
 ## Native ITSI capabilities enforced at the REST layer
 The ITSI handler checks these against the **runtime session key**:

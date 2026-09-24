@@ -29,7 +29,7 @@ max_objects_per_window = <integer>
 * Maximum objects per maintenance window. Default: 1000
 
 max_duration_seconds = <integer>
-* Maximum maintenance-window duration in seconds. Default: 604800
+* Maximum maintenance-window duration in seconds. Default: 7776000
 
 max_future_horizon_seconds = <integer>
 * Maximum future scheduling distance in seconds. Default: 31536000

@@ -92,8 +92,8 @@
           <query>| makeresults
 | eval operation="list", request_id="dashboard-home"
 | itsimaintenance
-| eval start=strftime(start_time,"%Y-%m-%d %H:%M:%S UTC"),
-       end=strftime(end_time,"%Y-%m-%d %H:%M:%S UTC")
+| eval start=strftime(start_time,"%Y-%m-%d %H:%M:%S %Z"),
+       end=strftime(end_time,"%Y-%m-%d %H:%M:%S %Z")
 | table title maintenance_window_key start end object_count</query>
           <earliest>-1m</earliest>
           <latest>now</latest>
@@ -112,7 +112,7 @@
 | where maintenance_object_type="entity" AND start_time&lt;=now() AND end_time&gt;=now()
 | rename maintenance_object_key as entity_key
 | lookup itsi_entities _key as entity_key OUTPUT title as entity_title
-| eval ends=strftime(end_time,"%Y-%m-%d %H:%M:%S UTC")
+| eval ends=strftime(end_time,"%Y-%m-%d %H:%M:%S %Z")
 | table entity_title entity_key ends calendar_origin</query>
           <earliest>-1m</earliest>
           <latest>now</latest>
@@ -268,6 +268,52 @@
           <code>itsi_maintenance_manager</code> (read/create/update + KV access)
           and <code>itsi_maintenance_reader</code> (read-only). See
           <code>docs/ROLES.md</code> for a least-privilege setup.</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Troubleshooting &amp; logs</title>
+      <html>
+        <div style="padding:4px">
+          <p><b>1. Read the inline result.</b> Every run returns per-request rows
+          with <code>result</code> (<code>success</code>/<code>failure</code>/<code>noop</code>),
+          <code>error_category</code> and <code>error_message</code>. Start there.</p>
+
+          <p><b>2. Application log</b> (structured, sanitized &#8212; never contains
+          secrets):</p>
+          <pre>index=_internal source=*itsi_maintenance_window_management.log*
+| sort - _time</pre>
+          <p>On-disk path:
+          <code>$SPLUNK_HOME/var/log/splunk/itsi_maintenance_window_management.log</code>.
+          Filter by a run with <code>| search request_id="..."</code>.</p>
+
+          <p><b>3. Platform logs</b> for REST/handler issues:</p>
+          <pre>index=_internal sourcetype=splunkd (component=*Maintenance* OR maintenance_services_interface) (log_level=ERROR OR log_level=WARN)</pre>
+
+          <p><b>4. Inspect idempotency / operation state</b> (app KV Store):</p>
+          <pre>| rest splunk_server=local
+    /servicesNS/nobody/itsi_maintenance_window_management/storage/collections/data/itsi_mw_automation_state</pre>
+
+          <p><b>Common errors &amp; fixes</b></p>
+          <table style="border-collapse:collapse;width:100%">
+            <tr style="background:#f2f2f2"><th align="left">error_category</th><th align="left">Meaning / fix</th></tr>
+            <tr><td><code>operation_not_allowed</code></td><td>Operation disabled by config (e.g. delete). Enable it in the alert action parameters (alert UI), or set <code>enable_delete=true</code> in <code>itsi_maintenance.conf [safety]</code> for the command.</td></tr>
+            <tr><td><code>authorization_failed_403</code></td><td>Missing ITSI capability (<code>read/write/delete_maintenance_calendar</code>) or no write access to the service's team. Grant via role/team.</td></tr>
+            <tr><td><code>state_backend_error</code></td><td>Your role lacks read/write on the app KV collection <code>itsi_mw_automation_state</code>. Use the <code>itsi_maintenance_manager</code> role.</td></tr>
+            <tr><td><code>entity_not_found</code> / <code>service_not_found</code></td><td>The <code>object_key</code> is wrong. Use the ITSI object <code>_key</code>, not its title.</td></tr>
+            <tr><td><code>invalid_timestamp</code></td><td>Use UTC epoch seconds (or ISO-8601 with <code>Z</code>/offset); <code>end_time</code> must be &gt; <code>start_time</code>.</td></tr>
+            <tr><td><code>payload_conflict</code></td><td>Same <code>request_id</code> reused with different data. Use a new <code>request_id</code> for a new change.</td></tr>
+            <tr><td><code>limit_exceeded</code></td><td>Exceeds a configured maximum (rows/objects/duration/horizon). Adjust in Set up if appropriate.</td></tr>
+          </table>
+
+          <p style="margin-top:8px"><b>Where settings live:</b> the command reads
+          <code>itsi_maintenance.conf [safety]</code> (edit in
+          <code>local/</code> on self-managed Splunk, or via the
+          <code>configs/conf-itsi_maintenance</code> REST endpoint on Splunk
+          Cloud). The alert action uses its own parameters, editable in the alert
+          configuration UI.</p>
         </div>
       </html>
     </panel>

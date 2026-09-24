@@ -25,13 +25,24 @@
 - Passing local AppInspect does **not** guarantee Cloud approval.
 
 ## Configure customer-specific settings
-- Put overrides in `etc/apps/itsi_maintenance_window_management/local/`, never in
-  `default/`. Example `local/alert_actions.conf`:
+- **Alert action (Splunk Web, incl. Splunk Cloud):** the action's parameters
+  (including `enable_delete`) are editable in the alert configuration UI when you
+  add the action to a saved search — no backend access needed. Enabling delete
+  there is the single switch.
+- **Custom command settings:** the command reads `itsi_maintenance.conf
+  [safety]`. On self-managed Splunk, put overrides in
+  `etc/apps/itsi_maintenance_window_management/local/` (never in `default/`):
   ```
-  [itsi_maintenance_action]
-  param.required_title_prefix = CHG
-  param.require_change_id = true
+  [safety]
+  enable_delete = true
+  required_title_prefix = CHG
+  require_change_id = true
   ```
+  On **Splunk Cloud** (no filesystem access), an admin can edit the same stanza
+  via the REST endpoint
+  `/servicesNS/nobody/itsi_maintenance_window_management/configs/conf-itsi_maintenance/safety`
+  (e.g., via the Admin Config Service / a REST call). A Splunk-Web setup view is
+  planned (classic `setup.xml` is not permitted on Splunk Cloud).
 
 ## Upgrade
 1. Install the new `.spl` over the existing app (same ID).

@@ -144,7 +144,16 @@ python3 -m unittest discover -s tests/unit -p "test_*.py"
 python3 -m unittest discover -s tests/integration -p "test_*.py"
 ```
 
-## License
+## Author, support & license
 
-Apache-2.0. See [`LICENSE`](LICENSE) and
-[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) (no third-party code bundled).
+- **Author:** Sebastian Rauhala &lt;serauhal@cisco.com&gt;
+- **Built with generative AI** (human-reviewed). See `docs/VALIDATION_REPORT.md`.
+- **Developer-supported, no warranty.** Provided "AS IS" with no guarantees of
+  fitness, availability, or support. Validate in a non-production environment
+  first. See [`NOTICE`](NOTICE) for the full disclaimer.
+- **Trademarks:** Splunk and Splunk IT Service Intelligence (ITSI) are trademarks
+  of Splunk LLC, a Cisco company. This is an independent project and is **not** an
+  official Splunk or Cisco product, nor endorsed by them.
+- **License:** Apache-2.0 — see [`LICENSE`](LICENSE),
+  [`NOTICE`](NOTICE) and [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)
+  (bundles the Apache-2.0 Splunk SDK for Python).

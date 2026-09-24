@@ -9,13 +9,13 @@
     },
     "author": [
       {
-        "name": "ITSI Maintenance Window Management Project",
-        "email": null,
+        "name": "Sebastian Rauhala",
+        "email": "serauhal@cisco.com",
         "company": null
       }
     ],
     "releaseDate": null,
-    "description": "Create, inspect, update, cancel and (optionally) delete ITSI maintenance windows from scheduled or ad hoc saved searches via a supported ITSI REST interface.",
+    "description": "Create, inspect, update, cancel and (optionally) delete ITSI maintenance windows from scheduled or ad hoc saved searches via a supported ITSI REST interface. Developer-supported; provided as-is with no warranty. Built with the assistance of generative AI.",
     "classification": {
       "intendedAudience": "IT Operations",
       "categories": ["IT Operations", "Utilities"],
