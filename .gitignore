@@ -16,3 +16,6 @@ local.meta
 
 # Raw source art (processed into static/ icons; don't ship raw screenshots)
 Screenshot*.png
+
+# Build output (use ./build.sh; publish via GitHub Releases)
+/dist/
