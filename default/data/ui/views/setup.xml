@@ -1,0 +1,49 @@
+<dashboard script="setup.js" version="1.1" theme="light">
+  <label>ITSI Maintenance Window Management - Set up</label>
+  <description>Configure the itsimaintenance command's safety controls (stored in itsi_maintenance.conf [safety]). Works in Splunk Web, including Splunk Cloud.</description>
+  <row>
+    <panel>
+      <html>
+        <div class="imw-setup" style="padding:12px 6px;max-width:820px">
+          <p style="background:#fff4d6;border:1px solid #e6c14c;padding:8px;border-radius:4px">
+            These are safety controls for the <b>itsimaintenance</b> command. They are
+            not security boundaries by themselves — ITSI's own capabilities and object
+            RBAC always apply. Keep dry-run on until validated.
+          </p>
+
+          <h3>Behavior</h3>
+          <label><input type="checkbox" id="default_dry_run" /> Dry run by default (validate only, no writes)</label><br/>
+          <label><input type="checkbox" id="enable_delete" /> Enable delete (destructive; off by default). This is the single switch — no need to also edit allowed operations.</label><br/>
+          <label><input type="checkbox" id="allow_cancel_active" /> Allow cancelling an already-active window</label><br/>
+          <label><input type="checkbox" id="require_change_id" /> Require a change_id on write operations</label><br/>
+          <label><input type="checkbox" id="auto_split_mixed" /> Auto-split mixed entity+service requests into separate windows</label>
+
+          <h3>Allow-lists</h3>
+          <div>Allowed operations (comma-separated: validate,list,create,update,cancel):<br/>
+            <input type="text" id="allowed_operations" size="60" /></div>
+          <div style="margin-top:6px">Required title prefix (optional; blank = none):<br/>
+            <input type="text" id="required_title_prefix" size="40" /></div>
+
+          <h3>Limits</h3>
+          <div>Max window duration, seconds (default 7776000 = 90 days):
+            <input type="text" id="max_duration_seconds" size="14" /></div>
+          <div>Max future horizon, seconds (default 31536000 = 365 days):
+            <input type="text" id="max_future_horizon_seconds" size="14" /></div>
+          <div>Max objects per window (default 1000):
+            <input type="text" id="max_objects_per_window" size="10" /></div>
+          <div>Max rows per invocation (default 2000):
+            <input type="text" id="max_rows_per_invocation" size="10" /></div>
+
+          <div style="margin-top:14px">
+            <button id="imw-save" class="btn btn-primary">Save settings</button>
+            <span id="imw-status" style="margin-left:12px"></span>
+          </div>
+          <p style="margin-top:10px;color:#666">
+            Note: the alert action has its own parameters, editable in the alert
+            configuration UI when you add the action to a saved search.
+          </p>
+        </div>
+      </html>
+    </panel>
+  </row>
+</dashboard>

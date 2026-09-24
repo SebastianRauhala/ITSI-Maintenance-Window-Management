@@ -17,6 +17,10 @@ export = system
 access = read : [ * ], write : [ admin, sc_admin, itsi_maintenance_manager ]
 export = system
 
+[views/setup]
+access = read : [ * ], write : [ admin, sc_admin, itsi_maintenance_manager ]
+export = system
+
 [nav/default]
 access = read : [ * ], write : [ admin, sc_admin ]
 

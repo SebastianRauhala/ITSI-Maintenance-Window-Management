@@ -40,13 +40,15 @@ This project adheres to semantic versioning.
   maintenance (via `operative_maintenance_log`), a candidates-needing-maintenance
   anti-join, and an update example.
 - **App icons** (`static/appIcon*`, `appserver/static/appIcon.png`).
+- **Splunk-Web Set up page** (HTML/JS setup view) to edit the command's
+  `[safety]` settings from the browser, including on **Splunk Cloud** (writes to
+  `itsi_maintenance.conf [safety]` via the Splunk Web proxy). Registered via
+  `app.conf [ui] setup_view` and a nav tab.
 
 ### Notes
-- A classic `setup.xml` was evaluated for in-Web configuration but is **not
-  permitted on Splunk Cloud** (fails AppInspect / misbehaves with SHC). A
-  Splunk-Web setup **view (HTML/JS)** or UCC-based config is planned; meanwhile
-  the alert action is Web-configurable and the command's `[safety]` settings are
-  editable via `local/` or the `configs/conf-itsi_maintenance` REST endpoint.
+- A classic `setup.xml` is **not permitted on Splunk Cloud** (fails AppInspect /
+  misbehaves with SHC); the Set up page above uses the supported HTML/JS
+  approach instead.
 
 ## [1.0.0] - 2026-09-17
 

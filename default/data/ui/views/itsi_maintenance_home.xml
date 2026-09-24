@@ -299,7 +299,7 @@
           <p><b>Common errors &amp; fixes</b></p>
           <table style="border-collapse:collapse;width:100%">
             <tr style="background:#f2f2f2"><th align="left">error_category</th><th align="left">Meaning / fix</th></tr>
-            <tr><td><code>operation_not_allowed</code></td><td>Operation disabled by config (e.g. delete). Enable it in the alert action parameters (alert UI), or set <code>enable_delete=true</code> in <code>itsi_maintenance.conf [safety]</code> for the command.</td></tr>
+            <tr><td><code>operation_not_allowed</code></td><td>Operation disabled by config (e.g. delete). Enable it on the <b>Set up</b> page (set <code>enable_delete</code>), or in the alert action parameters for the alert path.</td></tr>
             <tr><td><code>authorization_failed_403</code></td><td>Missing ITSI capability (<code>read/write/delete_maintenance_calendar</code>) or no write access to the service's team. Grant via role/team.</td></tr>
             <tr><td><code>state_backend_error</code></td><td>Your role lacks read/write on the app KV collection <code>itsi_mw_automation_state</code>. Use the <code>itsi_maintenance_manager</code> role.</td></tr>
             <tr><td><code>entity_not_found</code> / <code>service_not_found</code></td><td>The <code>object_key</code> is wrong. Use the ITSI object <code>_key</code>, not its title.</td></tr>
@@ -309,11 +309,9 @@
           </table>
 
           <p style="margin-top:8px"><b>Where settings live:</b> the command reads
-          <code>itsi_maintenance.conf [safety]</code> (edit in
-          <code>local/</code> on self-managed Splunk, or via the
-          <code>configs/conf-itsi_maintenance</code> REST endpoint on Splunk
-          Cloud). The alert action uses its own parameters, editable in the alert
-          configuration UI.</p>
+          <code>itsi_maintenance.conf [safety]</code> — edit it on the app
+          <b>Set up</b> page (works on Splunk Cloud). The alert action uses its own
+          parameters, editable in the alert configuration UI.</p>
         </div>
       </html>
     </panel>
