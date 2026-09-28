@@ -3,6 +3,25 @@
 All notable changes to **ITSI Maintenance Window Management** are documented here.
 This project adheres to semantic versioning.
 
+## [1.3.0] - 2026-09-28
+
+### Changed
+- **Batched object resolution (major performance fix).** Verifying entity/service
+  existence previously did **one REST GET per object** (~0.5s each), so a
+  1000-object window spent ~8 minutes and a 3000-object window ~24 minutes just
+  resolving — often exceeding search/command runtime. Resolution is now **batched**
+  (`filter={"_key":{"$in":[…]}}`, ~200 keys per call). Measured live on 3081
+  entities: a **1000-object create dropped from ~8 min to ~3 seconds**
+  (50: 25s→1.5s, 150: 68s→1.7s). Missing keys still raise a precise
+  `entity_not_found`/`service_not_found` listing the offenders.
+- **Raised default limits:** `max_objects_per_window` 1000 → **5000**;
+  `max_rows_per_invocation` 2000 → **5000** (ITSI handles 5000-object windows;
+  a 1000-object create POST measured ~0.7s).
+
+### Added
+- Config `object_resolve_batch_size` (default 200) to tune the resolution batch
+  size (keep it small enough to stay within REST URL-length limits).
+
 ## [1.2.1] - 2026-09-28
 
 ### Fixed

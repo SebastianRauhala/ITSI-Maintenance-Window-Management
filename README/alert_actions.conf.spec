@@ -31,11 +31,11 @@ param.auto_split_mixed = <boolean>
 
 param.max_rows_per_invocation = <integer>
 * Maximum number of result rows processed per invocation.
-* Default: 2000
+* Default: 5000
 
 param.max_objects_per_window = <integer>
 * Maximum number of objects allowed in a single maintenance window.
-* Default: 1000
+* Default: 5000
 
 param.max_duration_seconds = <integer>
 * Maximum allowed maintenance-window duration, in seconds.
@@ -58,8 +58,14 @@ param.max_comment_length = <integer>
 * Default: 1024
 
 param.max_request_id_length = <integer>
-* Maximum allowed request_id length.
+* Maximum request_id length.
 * Default: 128
+
+param.object_resolve_batch_size = <integer>
+* Number of object keys verified per REST call when resolving entity/service
+* existence. Batching avoids one round-trip per object at scale.
+* Default: 200
+
 
 param.allowed_operations = <comma-separated list>
 * Subset of validate,list,create,update,cancel,delete permitted at runtime.

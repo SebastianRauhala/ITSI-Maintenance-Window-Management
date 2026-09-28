@@ -79,7 +79,7 @@ class TestEngineCreate(unittest.TestCase):
 
     def test_entity_not_found(self):
         eng, mt = make_engine()
-        mt.script("GET", "/entity/ent1", 404, {"message": "no"})
+        mt.missing_object_keys = {"ent1"}
         res = eng.run(create_rows())
         self.assertEqual(res[0]["result"], "failure")
         self.assertEqual(res[0]["error_category"], "entity_not_found")

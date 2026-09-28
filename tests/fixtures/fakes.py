@@ -16,6 +16,7 @@ class FakeMaintTransport(object):
         self._counter = 0
         self.scripted = {}
         self.raise_on = {}
+        self.missing_object_keys = set()
 
     def script(self, method, suffix, status, body):
         self.scripted[(method, suffix)] = (status, body)
@@ -57,6 +58,20 @@ class FakeMaintTransport(object):
         if method == "GET" and ("/entity/" in path or "/service/" in path):
             key = path.rsplit("/", 1)[-1]
             return 200, json.dumps({"_key": key})
+        # Batched resolution: GET on the entity/service collection with a
+        # {"_key": {"$in": [...]}} filter. Return matching keys minus any
+        # configured missing set.
+        if method == "GET" and (path.rstrip("/").endswith("/entity")
+                                or path.rstrip("/").endswith("/service")):
+            in_keys = []
+            try:
+                flt = json.loads((getargs or {}).get("filter", "{}"))
+                in_keys = flt.get("_key", {}).get("$in", []) or []
+            except (ValueError, TypeError, AttributeError):
+                in_keys = []
+            out = [{"_key": k} for k in in_keys
+                   if k not in getattr(self, "missing_object_keys", set())]
+            return 200, json.dumps(out)
         if method == "GET" and path.endswith("get_supported_object_types"):
             return 200, json.dumps(["maintenance_calendar"])
         return 200, json.dumps([])

@@ -228,8 +228,13 @@ class Engine(object):
     # -- helpers ----------------------------------------------------------
     def _plan(self, grp, resolve, windows=None):
         if resolve:
+            # Batch object resolution by type (few GETs instead of one per key).
+            by_type = {}
             for o in grp.objects:
-                self._client.resolve_object(o["object_type"], o["_key"])
+                by_type.setdefault(o["object_type"], []).append(o["_key"])
+            batch = getattr(self._settings, "resolve_batch_size", 200)
+            for otype, ks in by_type.items():
+                self._client.resolve_objects(otype, ks, batch)
         out = {
             "title": grp.title,
             "start_time": grp.start_epoch,

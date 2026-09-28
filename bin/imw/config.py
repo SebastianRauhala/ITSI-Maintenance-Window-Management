@@ -48,8 +48,11 @@ class Settings(object):
         self.auto_split_mixed = as_bool(cfg.get("auto_split_mixed"), True)
 
         # Limits
-        self.max_rows = as_int(cfg.get("max_rows_per_invocation"), 2000)
-        self.max_objects = as_int(cfg.get("max_objects_per_window"), 1000)
+        self.max_rows = as_int(cfg.get("max_rows_per_invocation"), 5000)
+        self.max_objects = as_int(cfg.get("max_objects_per_window"), 5000)
+        # Object resolution batch size (keys per GET when verifying existence).
+        self.resolve_batch_size = as_int(cfg.get("object_resolve_batch_size"),
+                                         200)
         self.max_duration_s = as_int(cfg.get("max_duration_seconds"), 90 * 86400)
         self.max_future_horizon_s = as_int(
             cfg.get("max_future_horizon_seconds"), 365 * 86400)

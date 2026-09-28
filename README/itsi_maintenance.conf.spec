@@ -23,10 +23,10 @@ auto_split_mixed = <boolean>
 * Auto-split mixed entity+service requests into separate windows. Default: true
 
 max_rows_per_invocation = <integer>
-* Maximum result rows processed per invocation. Default: 2000
+* Maximum result rows processed per invocation. Default: 5000
 
 max_objects_per_window = <integer>
-* Maximum objects per maintenance window. Default: 1000
+* Maximum objects per maintenance window. Default: 5000
 
 max_duration_seconds = <integer>
 * Maximum maintenance-window duration in seconds. Default: 7776000
@@ -45,6 +45,10 @@ max_comment_length = <integer>
 
 max_request_id_length = <integer>
 * Maximum request_id length. Default: 128
+
+object_resolve_batch_size = <integer>
+* Number of object keys verified per REST call when resolving entity/service
+* existence. Batching avoids one round-trip per object at scale. Default: 200
 
 allowed_operations = <comma-separated list>
 * Subset of validate,list,create,update,cancel,delete permitted. 

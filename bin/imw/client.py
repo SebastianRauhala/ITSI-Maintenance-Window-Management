@@ -161,6 +161,53 @@ class MaintenanceClient(object):
             raise MwError(missing, "%s key not found." % object_type)
         return True
 
+    def resolve_objects(self, object_type, keys, batch_size=200):
+        """Verify that many entity/service keys exist, in a few batched GETs
+        instead of one GET per key.
+
+        Uses ``filter={"_key":{"$in":[...]}}&fields=_key`` in chunks of
+        ``batch_size`` (kept small to stay within URL-length limits). Raises
+        MwError with the appropriate not-found category listing missing keys.
+        This is dramatically faster than per-object resolution at scale
+        (thousands of objects: seconds instead of many minutes).
+        """
+        if object_type == "entity":
+            base = C.ENTITY_API_PATH
+            missing = ErrorCategory.ENTITY_NOT_FOUND
+        elif object_type == "service":
+            base = C.SERVICE_API_PATH
+            missing = ErrorCategory.SERVICE_NOT_FOUND
+        else:
+            raise MwError(ErrorCategory.INVALID_INPUT,
+                          "Unsupported object_type: %r" % object_type)
+        # De-duplicate while preserving order.
+        remaining = list(dict.fromkeys(keys))
+        if not remaining:
+            return True
+        if not batch_size or batch_size < 1:
+            batch_size = 200
+        found = set()
+        for i in range(0, len(remaining), batch_size):
+            chunk = remaining[i:i + batch_size]
+            getargs = {
+                "filter": json.dumps({"_key": {"$in": chunk}}),
+                "fields": "_key",
+                "count": str(len(chunk)),
+            }
+            resp = self._request("GET", base, getargs=getargs)
+            if isinstance(resp, list):
+                for obj in resp:
+                    if isinstance(obj, dict) and obj.get("_key"):
+                        found.add(obj["_key"])
+        missing_keys = [k for k in remaining if k not in found]
+        if missing_keys:
+            sample = ", ".join(missing_keys[:5])
+            more = "" if len(missing_keys) <= 5 else " (+%d more)" % (
+                len(missing_keys) - 5)
+            raise MwError(missing, "%d %s key(s) not found: %s%s" % (
+                len(missing_keys), object_type, sample, more))
+        return True
+
     # -- maintenance_calendar CRUD ---------------------------------------
     def list_windows(self, filter_data=None, fields=None, count=None, skip=None):
         getargs = {}
