@@ -3,6 +3,14 @@
 All notable changes to **ITSI Maintenance Window Management** are documented here.
 This project adheres to semantic versioning.
 
+## [1.1.1] - 2026-09-24
+
+### Added
+- **`static/appLogo.png` and `static/appLogo_2x.png`** so the app icon renders in
+  the in-app navigation bar (Splunk looks for `appLogo.png` there; its absence
+  produced a "No static asset … appLogo.png" warning). The launcher tile icon
+  (`appIcon*`) was already present.
+
 ## [1.1.0] - 2026-09-24
 
 ### Changed
