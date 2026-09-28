@@ -111,7 +111,46 @@ Configured in `default/alert_actions.conf` or per saved search via
 `max_rows_per_invocation`, `max_objects_per_window`, `max_duration_seconds`,
 `max_future_horizon_seconds`, `min_lead_seconds`, `allowed_operations`,
 `allowed_object_types`, `required_title_prefix`, `protected_object_keys`,
-`summary_index`.
+`object_resolve_batch_size`, `summary_index`.
+
+On Splunk Cloud, the command's settings are editable from the **Set up** page
+(no backend access needed); the alert action's parameters are editable in the
+alert configuration UI.
+
+## Entities and services
+
+Both ITSI object types are supported and validated:
+
+- **Entities** and **services** can each be placed into a maintenance window
+  (`object_type = entity | service`).
+- A window is **one object type** (ITSI does not support mixed windows). A single
+  request that lists **both** entities and services is **auto-split** into one
+  entity window and one service window (distinct titles), sharing the same
+  `request_id`.
+- `create`, `update` (full replace), `cancel`, and `delete` all work identically
+  for service and entity windows.
+
+## Scale & performance
+
+Object existence is verified in **batched** REST calls
+(`object_resolve_batch_size`, default 200), not one call per object. Measured on
+a 3081‑entity ITSI 4.21.3 instance:
+
+| Window size | Create time |
+|---|---|
+| 1,000 objects | ~3 s |
+| 2,000 objects | ~7 s |
+| 3,000 objects | ~8.5 s |
+
+Guidance for large maintenance runs:
+
+- Default limits: `max_objects_per_window` = **5000**, `max_rows_per_invocation`
+  = **5000** (tune via Set up / conf). One window ≤ 5000 objects is the sweet
+  spot; beyond that, split by service/site.
+- Prefer the **single‑row multi‑key** form — collapse keys with
+  `| stats values(object_key) as object_key | eval object_key=mvjoin(object_key,",")`
+  — so the whole request is one row (avoids per‑row overhead and multi‑chunk
+  handling).
 
 ## Security
 
