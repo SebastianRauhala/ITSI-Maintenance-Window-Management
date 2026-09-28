@@ -3,6 +3,12 @@
 All notable changes to **ITSI Maintenance Window Management** are documented here.
 This project adheres to semantic versioning.
 
+## [1.3.1] - 2026-09-28
+
+### Fixed
+- Removed `check_for_updates = 0` from `app.conf [package]` — Splunkbase
+  vetting requires update checks to remain enabled for published apps.
+
 ## [1.3.0] - 2026-09-28
 
 ### Changed

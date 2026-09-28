@@ -15,7 +15,7 @@ reading the installed handler source:
 """
 
 APP_ID = "itsi_maintenance_window_management"
-APP_VERSION = "1.3.0"
+APP_VERSION = "1.3.1"
 
 # ITSI backend app + owner. Owner MUST be "nobody": the ITSI provider explicitly
 # rejects any other owner for maintenance_calendar
