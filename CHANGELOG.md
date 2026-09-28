@@ -3,6 +3,17 @@
 All notable changes to **ITSI Maintenance Window Management** are documented here.
 This project adheres to semantic versioning.
 
+## [1.2.1] - 2026-09-28
+
+### Fixed
+- **Custom command now accumulates rows across chunks and runs once.** Splunk can
+  deliver a command's input in multiple chunks; the command previously processed
+  each chunk independently, so a large `update` (a full replace) executed once
+  per chunk and the last chunk overwrote the earlier objects — only a subset
+  persisted, and duplicate result rows appeared for the same `request_id`. The
+  command now waits for the final chunk (`self._finished`) before acting.
+  (The alert action reads all results at once and was not affected.)
+
 ## [1.2.0] - 2026-09-28
 
 ### Added

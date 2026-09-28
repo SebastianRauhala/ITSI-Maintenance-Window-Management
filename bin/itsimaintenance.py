@@ -76,6 +76,26 @@ class ItsiMaintenanceCommand(EventingCommand):
         return Settings(cfg)
 
     def transform(self, records):
+        # Splunk may deliver the input in MULTIPLE chunks. Processing each chunk
+        # independently would run a separate operation per chunk - for an update
+        # (full replace) later chunks would overwrite earlier objects, so only
+        # the last chunk's objects would persist. We therefore ACCUMULATE rows
+        # across chunks and run the engine exactly once, on the final chunk
+        # (self._finished is set True by splunklib only for the last chunk).
+        if not hasattr(self, "_imw_rows"):
+            self._imw_rows = []
+        for rec in records:
+            row = {k: rec.get(k) for k in _INPUT_FIELDS if rec.get(k) not in
+                   (None, "")}
+            if self.dry_run is not None:
+                row["dry_run"] = "true" if self.dry_run else "false"
+            self._imw_rows.append(row)
+
+        if not self._finished:
+            return  # wait for the remaining chunks before acting
+
+        rows = self._imw_rows
+
         si = self.metadata.searchinfo
         session_key = getattr(si, "session_key", None)
         splunkd_uri = getattr(si, "splunkd_uri", None)
@@ -85,24 +105,16 @@ class ItsiMaintenanceCommand(EventingCommand):
                               "No session key available to the command.")
             return
 
-        settings = self._load_settings()
-        client = MaintenanceClient(session_key, server_uri=splunkd_uri)
-        itsi_version = detect_itsi_version(session_key)
-        engine = Engine(session_key, settings, client, itsi_version=itsi_version)
-
-        rows = []
-        for rec in records:
-            row = {k: rec.get(k) for k in _INPUT_FIELDS if rec.get(k) not in
-                   (None, "")}
-            if self.dry_run is not None:
-                row["dry_run"] = "true" if self.dry_run else "false"
-            rows.append(row)
-
         if not rows:
             yield _err_record("__no_rows__",
                               "No input rows. Pipe rows describing the "
                               "operation into | itsimaintenance.")
             return
+
+        settings = self._load_settings()
+        client = MaintenanceClient(session_key, server_uri=splunkd_uri)
+        itsi_version = detect_itsi_version(session_key)
+        engine = Engine(session_key, settings, client, itsi_version=itsi_version)
 
         context = {
             "search_name": getattr(si, "search", None),

@@ -25,6 +25,10 @@ def _chunk(meta, body=""):
 
 class TestCommandProtocol(unittest.TestCase):
     def _run(self, rows_csv):
+        return self._run_chunks([rows_csv])
+
+    def _run_chunks(self, chunk_bodies):
+        """Send getinfo then one execute chunk per body; last is finished=True."""
         dd = tempfile.mkdtemp(prefix="mw_test_")
         si = {
             "args": [], "raw_args": [], "dispatch_dir": dd, "sid": "s",
@@ -33,10 +37,13 @@ class TestCommandProtocol(unittest.TestCase):
             "splunkd_uri": "https://127.0.0.1:8089", "splunk_version": "10.0.0",
             "search": "| itsimaintenance", "earliest_time": 0, "latest_time": 0,
         }
-        inp = (_chunk({"action": "getinfo", "preview": False,
-                       "searchinfo": si})
-               + _chunk({"action": "execute", "finished": True}, rows_csv))
-        p = subprocess.run([sys.executable, CMD], input=inp,
+        payload = _chunk({"action": "getinfo", "preview": False,
+                          "searchinfo": si})
+        n = len(chunk_bodies)
+        for i, body in enumerate(chunk_bodies):
+            finished = (i == n - 1)
+            payload += _chunk({"action": "execute", "finished": finished}, body)
+        p = subprocess.run([sys.executable, CMD], input=payload,
                            capture_output=True, timeout=120)
         return p.returncode, p.stdout.decode("utf-8", "replace")
 
@@ -54,6 +61,20 @@ class TestCommandProtocol(unittest.TestCase):
         rc, out = self._run(csv)
         self.assertEqual(rc, 0)
         self.assertIn("failure", out)
+
+    def test_multichunk_accumulates_single_result(self):
+        # Rows for the SAME request_id split across two chunks must yield ONE
+        # result (accumulated), not one per chunk. Regression test for
+        # multi-chunk update overwriting objects.
+        hdr = "operation,request_id\r\n"
+        rc, out = self._run_chunks([hdr + "list,ACC1\r\n",
+                                    hdr + "list,ACC1\r\n"])
+        self.assertEqual(rc, 0)
+        # Count data rows referencing the request_id (exclude the CSV header).
+        data_hits = [ln for ln in out.splitlines()
+                     if ln.startswith("ACC1,") or ",ACC1," in ln]
+        self.assertEqual(len(data_hits), 1,
+                         "expected exactly one accumulated result row")
 
 
 if __name__ == "__main__":
