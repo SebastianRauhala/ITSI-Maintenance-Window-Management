@@ -121,6 +121,52 @@ class TestGrouping(unittest.TestCase):
         with self.assertRaises(ValidationError):
             normalize_and_group([row(request_id="Auto\nMW")], self.s, NOW)
 
+    def test_object_key_csv_multi(self):
+        # Many keys in one row (comma-separated) -> many objects.
+        g = normalize_and_group(
+            [row(object_key="k1,k2,k3", object_type="entity")], self.s, NOW)
+        self.assertEqual(len(g["R1"].objects), 3)
+
+    def test_object_key_whitespace_multi(self):
+        g = normalize_and_group(
+            [row(object_key="k1 k2\nk3", object_type="entity")], self.s, NOW)
+        self.assertEqual(len(g["R1"].objects), 3)
+
+    def test_object_key_multivalue_list(self):
+        # Splunk multivalue field arrives as a Python list (custom command).
+        g = normalize_and_group(
+            [row(object_key=["k1", "k2"], object_type="entity")], self.s, NOW)
+        self.assertEqual(len(g["R1"].objects), 2)
+
+    def test_object_key_csv_dedup(self):
+        g = normalize_and_group(
+            [row(object_key="k1,k2,k1", object_type="entity")], self.s, NOW)
+        self.assertEqual(len(g["R1"].objects), 2)
+
+    def test_object_type_per_key_list(self):
+        g = normalize_and_group(
+            [row(object_key="k1,k2", object_type="entity,service")],
+            self.s, NOW)
+        types = {o["object_type"] for o in g["R1"].objects}
+        self.assertEqual(types, {"entity", "service"})
+
+    def test_object_type_length_mismatch(self):
+        with self.assertRaises(ValidationError):
+            normalize_and_group(
+                [row(object_key="k1,k2,k3", object_type="entity,service")],
+                self.s, NOW)
+
+    def test_update_many_keys_single_row(self):
+        keys = ",".join("key-%03d" % i for i in range(75))
+        g = normalize_and_group([row(operation="update", object_key=keys,
+                                     object_type="entity",
+                                     maintenance_window_key="win123")],
+                                self.s, NOW)
+        self.assertEqual(len(g["R1"].objects), 75)
+        wins = g["R1"].build_windows(self.s.auto_split_mixed)
+        self.assertEqual(len(wins), 1)
+        self.assertEqual(len(wins[0]["objects"]), 75)
+
     def test_url_field_is_data_only(self):
         # A URL supplied in a field is just rejected as an invalid key; it is
         # never fetched or interpreted.

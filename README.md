@@ -80,8 +80,8 @@ Each row is a record. Required for **every** row: `operation`, `request_id`.
 | `operation` | all | one of `validate,list,create,update,cancel,delete` (subject to allow-list) |
 | `request_id` | all | idempotency key; letters/digits/`. _ : -` and spaces, 1–128 chars (tab/newline not allowed). Stored internally under a hashed KV key. |
 | `title` | create/update | globally unique in ITSI |
-| `object_key` | create/update | opaque ITSI entity/service `_key` |
-| `object_type` | create/update | `entity` or `service` |
+| `object_key` | create/update | opaque ITSI entity/service `_key`. May be a **list** (comma/whitespace-separated, or a multivalue field) to include many objects in one row. |
+| `object_type` | create/update | `entity` or `service`. A single value applies to all `object_key`s in the row; or supply a matching-length list (one type per key). |
 | `start_time` | create/update | UTC epoch seconds (or ISO-8601 with `Z`/offset) |
 | `end_time` | create/update | must be > start_time |
 | `maintenance_window_key` | update/cancel/delete | opaque ITSI window `_key` |

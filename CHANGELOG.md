@@ -3,6 +3,17 @@
 All notable changes to **ITSI Maintenance Window Management** are documented here.
 This project adheres to semantic versioning.
 
+## [1.2.0] - 2026-09-28
+
+### Added
+- **Multiple object keys per row.** `object_key` (and `object_type`) may now be a
+  **comma/whitespace-separated list** or a **multivalue field**, so a single
+  result row can carry many entities/services (e.g.
+  `object_key="k1,k2,k3", object_type="entity"`). A single `object_type` applies
+  to all keys; a matching-length list assigns a type per key. This fixes
+  `object_key has invalid characters or length` when passing many keys at once,
+  and avoids splitting a large update across many rows.
+
 ## [1.1.1] - 2026-09-24
 
 ### Added

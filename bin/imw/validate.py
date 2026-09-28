@@ -43,6 +43,27 @@ def _require(row, field, request_hint=""):
     return val
 
 
+def _to_list(value):
+    """Normalize a field that may be a single value, a comma/whitespace-
+    separated string, or a multivalue field (list/tuple) into a clean list of
+    non-empty tokens.
+
+    This lets one result row carry many object keys (e.g.
+    ``object_key="k1,k2,k3"`` or a Splunk multivalue field). ITSI keys and
+    object types contain no spaces or commas, so splitting on ``[\\s,]+`` is safe.
+    """
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        items = value
+    else:
+        s = _s(value)
+        if s == "":
+            return []
+        items = re.split(r"[\s,]+", s)
+    return [_s(x) for x in items if _s(x) != ""]
+
+
 class RequestGroup(object):
     def __init__(self, request_id, operation):
         self.request_id = request_id
@@ -219,37 +240,51 @@ def _apply_row(grp, row, settings):
                 ErrorCategory.PAYLOAD_CONFLICT,
             )
 
-    # Object (optional depending on operation).
-    okey = _s(row.get("object_key"))
-    otype = _s(row.get("object_type"))
-    if okey or otype:
-        if not okey or not otype:
+    # Object(s). object_key and object_type may each be a single value, a
+    # comma/whitespace-separated list, or a multivalue field. A single
+    # object_type applies to all keys in the row; otherwise the type list must
+    # match the key list length. This lets one row carry many objects.
+    keys = _to_list(row.get("object_key"))
+    types = _to_list(row.get("object_type"))
+    if keys or types:
+        if not keys or not types:
             raise ValidationError(
                 "Both object_key and object_type are required together "
                 "(request_id %s)." % grp.request_id,
                 ErrorCategory.MISSING_FIELD,
             )
-        if otype not in C.SUPPORTED_OBJECT_TYPES:
+        if len(types) == 1:
+            types = types * len(keys)
+        elif len(types) != len(keys):
             raise ValidationError(
-                "Unsupported object_type %r." % otype,
+                "object_key has %d values but object_type has %d; supply one "
+                "object_type for all keys, or one per key (request_id %s)."
+                % (len(keys), len(types), grp.request_id),
                 ErrorCategory.INVALID_INPUT,
             )
-        if otype not in settings.allowed_object_types:
-            raise ValidationError(
-                "object_type %r is not allowed by configuration." % otype,
-                ErrorCategory.NOT_ALLOWED,
-            )
-        if not _KEY_RE.match(okey):
-            raise ValidationError(
-                "object_key has invalid characters or length.",
-                ErrorCategory.INVALID_INPUT,
-            )
-        if okey in settings.protected_keys:
-            raise ValidationError(
-                "object_key %s is on the protected deny-list." % okey,
-                ErrorCategory.NOT_ALLOWED,
-            )
-        grp.add_object(okey, otype)
+        for okey, otype in zip(keys, types):
+            if otype not in C.SUPPORTED_OBJECT_TYPES:
+                raise ValidationError(
+                    "Unsupported object_type %r." % otype,
+                    ErrorCategory.INVALID_INPUT,
+                )
+            if otype not in settings.allowed_object_types:
+                raise ValidationError(
+                    "object_type %r is not allowed by configuration." % otype,
+                    ErrorCategory.NOT_ALLOWED,
+                )
+            if not _KEY_RE.match(okey):
+                raise ValidationError(
+                    "object_key %r has invalid characters or length."
+                    % okey[:64],
+                    ErrorCategory.INVALID_INPUT,
+                )
+            if okey in settings.protected_keys:
+                raise ValidationError(
+                    "object_key %s is on the protected deny-list." % okey,
+                    ErrorCategory.NOT_ALLOWED,
+                )
+            grp.add_object(okey, otype)
 
 
 def _finalize_group(grp, settings, now_epoch):
